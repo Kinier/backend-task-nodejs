@@ -104,12 +104,20 @@ router.route('/generate-document').post(
 
       doc.text(user?.firstName!);
       doc.text(user?.lastName!);
-      doc.image("./public/" + user?.image, {
-        fit: [250, 300],
-        align: 'center',
-        valign: 'center'
-      });
-      doc.end();
+      try {
+        doc.image("./public/" + user?.image, {
+          fit: [250, 300],
+          align: 'center',
+          valign: 'center'
+        });
+        doc.end();
+      } catch (error) {
+        res.json({ status: false });
+        return;
+      }
+
+
+
 
 
       res.status(201).json({ status: true });
@@ -170,7 +178,7 @@ router.route('/').get(
     const users = await userService.getAll();
 
 
-      res.json(users);
+    res.json(users);
   }
 );
 
@@ -182,12 +190,12 @@ router.route('/:id').put(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const oldUser = await userService.getById(parseInt(id!))
-    
+
     const user = await userService.updateById(parseInt(id!), req.body);
     // console.log(user)
     if ((user) && (user.affected) && (user.affected > 0)) {
-      if ((oldUser !== null) && (oldUser.email === req.session.user?.email)){
-        req.session.user = { isLogged: true, email:  req.body.email};
+      if ((oldUser !== null) && (oldUser.email === req.session.user?.email)) {
+        req.session.user = { isLogged: true, email: req.body.email };
         console.log(req.session.user);
       }
       res.status(200).json(user);
@@ -229,20 +237,20 @@ router.route('/:id').delete(
       res
         .status(404)
         .json({ code: 'USER_NOT_FOUND', msg: 'User not found' });
-    }else{
-      if ((oldUser !== null) && (oldUser.email === req.session.user?.email)){
-        req.session.user = { isLogged: false, email: ""};
+    } else {
+      if ((oldUser !== null) && (oldUser.email === req.session.user?.email)) {
+        req.session.user = { isLogged: false, email: "" };
         req.session.destroy((err) => {
           console.log(err)
           res.status(200).json({ code: 'USER_DELETED', msg: 'Your account deleted' });
         });
-        
-      }else{
+
+      } else {
         res.status(200).json({ code: 'USER_DELETED', msg: 'The user has been deleted' });
       }
     }
-    
-    
+
+
   }
 );
 
